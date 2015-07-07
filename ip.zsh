@@ -41,6 +41,22 @@ function ipv6::valid_addr() {
   done
 }
 
+function ip::valid_cidr() {
+  ipv4::valid_cidr "$@" || ipv6::valid_cidr "$@" || return 1
+}
+
+function ipv4::valid_cidr() {
+  [ ${1#*/} -le 32 ] &> /dev/null || return 1
+  [[ ${1#*/} -ge 0 ]] || return 1
+  ipv4::valid_addr ${1%/*} || return 1
+}
+
+function ipv6::valid_cidr() {
+  [ ${1#*/} -le 128 ] &> /dev/null || return 1
+  [[ ${1#*/} -ge 0 ]] || return 1
+  ipv6::valid_addr ${1%/*} || return 1
+}
+
 function ip::fmt_binary() {
   ipv4::fmt_binary "$@" || ipv6::fmt_binary "$@" || return 1
 }
@@ -152,7 +168,7 @@ function ip::network_addr() {
   typeset addr="$1"
   typeset binary
 
-  [[ -n "${addr[(r)/]}" ]] || return 1
+  ip::valid_cidr "${addr}" || return 1
 
   binary="$(ip::fmt_binary "${addr%/*}")"
   ip::fmt_human "${(r|${#binary}||0|)binary:0:${addr#*/}}"
@@ -164,7 +180,7 @@ function ip::bcast_addr() {
   typeset addr="$1"
   typeset binary
 
-  [[ -n "${addr[(r)/]}" ]] || return 1
+  ip::valid_cidr "${addr}" || return 1
 
   binary="$(ip::fmt_binary "${addr%/*}")"
   ip::fmt_human "${(r|${#binary}||1|)binary:0:${addr#*/}}"
@@ -257,9 +273,7 @@ function ipv4::nth_addr() {
   typeset host_max
   typeset n="$2"
 
-  [[ -n ${1[(r)/]} ]] || return 1
-  [ ${network_size} -eq "${network_size}" ] &> /dev/null || return 1
-  [[ "${network_size}" -gt 0 ]] || return 1
+  ipv4::valid_cidr "$1" || return 1
   [[ "${network_size}" -le 30 ]] || return 1
   [ $n -eq "$n" ] || return 1
 
@@ -289,9 +303,7 @@ function ipv6::nth_addr() {
   typeset host_max
   typeset n="$2"
 
-  [[ -n ${1[(r)/]} ]] || return 1
-  [ ${network_size} -eq "${network_size}" ] &> /dev/null || return 1
-  [[ "${network_size}" -gt 0 ]] || return 1
+  ipv6::valid_cidr "$1" || return 1
   [[ "${network_size}" -le 126 ]] || return 1
   [[ $n =~ "^-?[[:digit:]]*$" ]] || return 1
 
