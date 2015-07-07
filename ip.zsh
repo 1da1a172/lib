@@ -275,7 +275,7 @@ function ipv4::nth_addr() {
 
   ipv4::valid_cidr "$1" || return 1
   [[ "${network_size}" -le 30 ]] || return 1
-  [ $n -eq "$n" ] || return 1
+  [[ -n "$n" ]] && [ $n -eq "$n" ] &> /dev/null || return 1
 
   network_bits="${$(ipv4::fmt_binary ${network}):0:${network_size}}" || return 1
   host_size=$(( 32 - ${network_size} ))
@@ -305,7 +305,7 @@ function ipv6::nth_addr() {
 
   ipv6::valid_cidr "$1" || return 1
   [[ "${network_size}" -le 126 ]] || return 1
-  [[ $n =~ "^-?[[:digit:]]*$" ]] || return 1
+  [[ $n =~ "^-?[[:digit:]]+$" ]] || return 1
 
   network_bits="${$(ipv6::fmt_binary ${network}):0:${network_size}}" || return 1
   host_size=$(( 128 - ${network_size} ))
