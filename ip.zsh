@@ -322,3 +322,53 @@ function ipv6::nth_addr() {
 
   ipv6::fmt_hex "${network_bits}${host_bits}"
 }
+
+function ip::addr_index() {
+  ipv4::addr_index "$@" || ipv6:addr_index "$@" || return 1
+}
+
+function ipv4::addr_index() {
+  typeset addr
+  typeset network
+  typeset bcast
+  typeset start_delta
+  typeset end_delta
+
+  ipv4::valid_cidr "$1" || return 1
+
+  addr=$(ipv4::fmt_binary "${1%/*}")
+  network="${(r|32||0|)${addr:0:${1#*/}}}"
+  bcast="${(r|32||1|)${addr:0:${1#*/}}}"
+
+  start_delta=$(( 2#${addr} - 2#${network} ))
+  end_delta=$(( 2#${addr} - 2#${bcast} ))
+
+  if [[ ${start_delta} -le ${end_delta:1} ]]; then
+    [[ "${start_delta}" -gt 0 ]] && echo "${start_delta}" || return 1
+  else
+    [[ "${end_delta}" -lt 0 ]] && echo "${end_delta}" || return 1
+  fi
+}
+
+function ipv6::addr_index() {
+  typeset addr
+  typeset network
+  typeset bcast
+  typeset start_delta
+  typeset end_delta
+
+  ipv6::valid_cidr "$1" || return 1
+
+  addr=$(ipv6::fmt_binary "${1%/*}")
+  network="${(r|128||0|)${addr:0:${1#*/}}}"
+  bcast="${(r|128||1|)${addr:0:${1#*/}}}"
+
+  start_delta=$(bc <<< "ibase=2;${addr} - ${network}")
+  end_delta=$(bc <<< "ibase=2;${addr} - ${bcast}")
+
+  if [[ (( $(bc <<< "${start_delta} <= ${end_delta}") )) ]]; then
+    (( $(bc <<< "${start_delta} > 0") )) && echo "${start_delta}" || return 1
+  else
+    (( $(bc <<< "${end_delta} < 0") )) && echo "${end_delta}" || return 1
+  fi
+}
