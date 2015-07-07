@@ -1,57 +1,12 @@
 #!/usr/bin/zsh
 #
 # A library for scripting with network stuff
-# This is an early version. function names are subject to change
-#
-# TODO: sensible function names; follow the lib::function naming convention
 
-################################################################################
-# prints ip address in binary to stdout
-# arguments:
-#  $1 = ipv4 or ipv6 address
-# returns:
-#  1: $1 is not a valid v4 or v6 address
-################################################################################
-function baddr() {
-  typeset haddr="$1"
-  typeset baddr
-  typeset block
-
-  if valid_ipv4_addr "${haddr}" ; then
-    for block (${(ws|.|)haddr}) baddr+="${(l|8||0|)$(([#2]${block}))#'2#'}"
-  elif valid_ipv6_addr "${haddr}" ; then
-    haddr="$(long_ipv6_addr "${haddr}")" || return 1
-    for block (${(ws|:|)haddr}) baddr+="${(l|16||0|)$(([#2]16#${block}))#'2#'}"
-  else
-    return 1
-  fi
-  echo "${baddr}"
+function ip::valid_addr() {
+  ipv4::valid_addr "$@" || ipv6::valid_addr "$@" || return 1
 }
 
-################################################################################
-# prints ip address in human readable format to stdout
-# arguments:
-#  $1 = 32 or 128 0's and 1's
-# returns:
-#  1: $1 is not a valid v4 or v6 address
-################################################################################
-function haddr() {
-  typeset baddr="$1"
-  typeset index
-  typeset -a haddr
-
-  if [[ "${baddr}" =~ "^[01]{32}$" ]]; then
-    for index ({1..4}) haddr[index]=$((2#${baddr:(${index}-1)*8:8}))
-    echo ${(j|.|)haddr}
-  elif [[ "${baddr}" =~ "^[01]{128}$" ]]; then
-    for index ({1..8}) haddr[index]="${$(([#16]2#${baddr:(${index}-1)*16:16}))}"
-    short_ipv6_addr ${(Lj|:|)haddr#'16#'}
-  else
-    return 1
-  fi
-}
-
-function valid_ipv4_addr() {
+function ipv4::valid_addr() {
   typeset addr="$1"
   typeset octet
 
@@ -66,7 +21,7 @@ function valid_ipv4_addr() {
   done
 }
 
-function valid_ipv6_addr() {
+function ipv6::valid_addr() {
   typeset addr="$1"
   typeset hextet
 
@@ -86,44 +41,72 @@ function valid_ipv6_addr() {
   done
 }
 
-################################################################################
-# fill in all the implicit zero's on an IPv6 address.
-# Arguments:
-#  $1 = IPv6 address
-# Returns:
-#  1 - $1 is not a valid IPv6 address
-################################################################################
-function long_ipv6_addr() {
-  typeset pos
-  typeset short_addr="$1"
-  typeset -a long_addr
-  valid_ipv6_addr "${short_addr}" || return 1
-
-  long_addr=(0 0 0 0 0 0 0 0)
-  if [[ -n "${short_addr%::*}" ]]; then
-    for pos in {1.."${(ws|:|)#short_addr%::*}"}; do
-      long_addr[pos]="${short_addr[(ws|:|)pos]}"
-    done
-  fi
-  if [[ -n "${short_addr#*::}" ]]; then
-    for pos in {-1..-"${(ws|:|)#short_addr#*::}"}; do
-      long_addr[9+${pos}]="${short_addr[(ws|:|)pos]}"
-    done
-  fi
-
-  echo ${(j|:|)${(l|4||0|)long_addr}}
+function ip::fmt_binary() {
+  ipv4::fmt_binary "$@" || ipv6::fmt_binary "$@" || return 1
 }
 
-################################################################################
-# Apply all IPv6 address abbreviations
-# TODO: regex instead of loops.
-################################################################################
-function short_ipv6_addr() {
+function ipv4::fmt_binary() {
+  typeset decimal="$1"
+  typeset binary
+  typeset octet
+
+  ipv4::valid_addr "${decimal}" || return 1
+  for octet in ${(ws|.|)decimal}; do
+    binary+="${(l|8||0|)$(([#2]${octet}))#'2#'}"
+  done
+
+  echo "${binary}"
+}
+
+function ipv6::fmt_binary() {
+  typeset hex
+  typeset binary
+  typeset hextet
+
+  hex="$(ipv6::fmt_long "$1")" || return 1
+  for hextet in ${(ws|:|)hex}; do
+    binary+="${(l|16||0|)$(([#2]16#${hextet}))#'2#'}"
+  done
+
+  echo "${binary}"
+}
+
+function ip::fmt_human() {
+  ipv4::fmt_decimal "$@" || ipv6::fmt_hex "$@" || return 1
+}
+
+function ipv4::fmt_decimal() {
+  typeset binary="$1"
+  typeset octet
+  typeset -a octets
+
+  [[ "${binary}" =~ "^[01]{32}$" ]] || return 1
+  for octet in {1..4}; do
+    octets[octet]="$(( 2#${binary:(${octet}-1)*8:8} ))"
+  done
+  echo ${(j|.|)octets}
+}
+alias ipv4::fmt_human=ipv4::fmt_decimal
+
+function ipv6::fmt_hex() {
+  typeset binary="$1"
+  typeset hextet
+  typeset -a hextets
+
+  [[ "${binary}" =~ "^[01]{128}$" ]] || return 1
+  for hextet in {1..8}; do
+    hextets[hextet]="${$(( [#16] 2#${binary:(${hextet}-1)*16:16} ))}"
+  done
+  ipv6::fmt_short ${(Lj|:|)hextets#'16#'}
+}
+alias ipv6::fmt_human=ipv6::fmt_hex
+
+function ipv6::fmt_short() {
   typeset long_addr
   typeset short_addr
   typeset zeros='0000:0000:0000:0000:0000:0000:0000'
   typeset hextet
-  long_addr=$(long_ipv6_addr $1) || return 1
+  long_addr=$(ipv6::fmt_long $1) || return 1
   short_addr="${long_addr}"
 
   while [[ ${#short_addr} -eq 39 ]] && [[ ${#zeros} -gt 4 ]]; do
@@ -144,40 +127,52 @@ function short_ipv6_addr() {
   echo "${short_addr}"
 }
 
-################################################################################
-# prints network address to stdout
-# arguments:
-#  $1=ip address and mask bits in cidr format (eg, 192.168.1.1/24)
-# returns:
-# 1: $1 is not a valid v4 or v6 address
-################################################################################
-function ntwk() {
+function ipv6::fmt_long() {
+  typeset pos
+  typeset short_addr="$1"
+  typeset -a long_addr
+  ipv6::valid_addr "${short_addr}" || return 1
+
+  long_addr=(0 0 0 0 0 0 0 0)
+  if [[ -n "${short_addr%::*}" ]]; then
+    for pos in {1.."${(ws|:|)#short_addr%::*}"}; do
+      long_addr[pos]="${short_addr[(ws|:|)pos]}"
+    done
+  fi
+  if [[ -n "${short_addr#*::}" ]]; then
+    for pos in {-1..-"${(ws|:|)#short_addr#*::}"}; do
+      long_addr[9+${pos}]="${short_addr[(ws|:|)pos]}"
+    done
+  fi
+
+  echo ${(j|:|)${(l|4||0|)long_addr}}
+}
+
+function ip::network_addr() {
   typeset addr="$1"
-  typeset baddr
+  typeset binary
 
   [[ -n "${addr[(r)/]}" ]] || return 1
 
-  baddr="$(baddr "${addr%/*}")"
-  haddr "${(r|${#baddr}||0|)baddr:0:${addr#*/}}"
+  binary="$(ip::fmt_binary "${addr%/*}")"
+  ip::fmt_human "${(r|${#binary}||0|)binary:0:${addr#*/}}"
 }
-################################################################################
-# prints broadcast address to stdout
-# arguments:
-#  $1=ip address and mask bits in cidr format (eg, 192.168.1.1/24)
-# returns:
-#  1: $1 is not a valid v4 or v6 address
-################################################################################
-function bcast() {
+alias ipv4::network_addr=ip::network_addr
+alias ipv6::network_addr=ip::network_addr
+
+function ip::bcast_addr() {
   typeset addr="$1"
-  typeset baddr
+  typeset binary
 
   [[ -n "${addr[(r)/]}" ]] || return 1
 
-  baddr="$(baddr "${addr%/*}")"
-  haddr "${(r|${#baddr}||1|)baddr:0:${addr#*/}}"
+  binary="$(ip::fmt_binary "${addr%/*}")"
+  ip::fmt_human "${(r|${#binary}||1|)binary:0:${addr#*/}}"
 }
+alias ipv4::bcast_addr=ip::bcast_addr
+alias ipv6::bcast_addr=ip::bcast_addr
 
-function subnet() {
+function ipv4::subnet() {
   case "$1" in
     ('255.255.255.255') echo 32 ;;
     ('255.255.255.254') echo 31 ;;
@@ -249,39 +244,69 @@ function subnet() {
   esac
 }
 
-################################################################################
-# Returns the nth usable IP in a subnet. Takes v4 and v6 addresses. Will only 
-# return usable IP's. if the nth IP is the network address (ie: n=0) or the
-# broadcast address, function will quit with an error
-# TODO: handle negative $n for nth ip from end
-# Arguments:
-#  $1=cidr formated address (ie, 192.168.1.3/24)
-#  $2=n
-# Returns:
-#  1 - missing an argument
-################################################################################
-function nth_ip() {
+function ip::nth_addr() {
+  ipv4::nth_addr "$@" || ipv6::nth_addr "$@" || return 1
+}
+
+function ipv4::nth_addr() {
   typeset network="${1%/*}"
   typeset network_bits
   typeset network_size="${1#*/}"
   typeset host_bits
   typeset host_size
+  typeset host_max
   typeset n="$2"
 
-  [[ "${network}" != "${network_size}" ]] || return 1
-  [[ $(( $n )) == "$n" ]] || return 1
+  [[ -n ${1[(r)/]} ]] || return 1
+  [ ${network_size} -eq "${network_size}" ] &> /dev/null || return 1
+  [[ "${network_size}" -gt 0 ]] || return 1
+  [[ "${network_size}" -le 30 ]] || return 1
+  [ $n -eq "$n" ] || return 1
 
-  network_bits="${$(baddr ${network}):0:${network_size}}"
-  if valid_ipv4_addr ${network}; then
-    host_size=$(( 32 - ${network_size} ))
-  elif valid_ipv6_addr ${network}; then
-    host_size=$(( 128 - ${network_size} ))
+  network_bits="${$(ipv4::fmt_binary ${network}):0:${network_size}}" || return 1
+  host_size=$(( 32 - ${network_size} ))
+  host_max="${(r|${host_size}||1|)}"
+  if [[ $n > 0 ]];then
+    [[ $n -lt $(( 2#${host_max} )) ]] || return 1
+    host_bits=${(l|${host_size}||0|)$(( [#2] $n ))#'2#'}
+  elif [[ $n < 0 ]]; then
+    [[ ${n:1} -lt $(( 2#${host_max} )) ]] || return 1
+    host_bits=${$(( [#2] 2#${host_max} + $n ))#'2#'}
   else
     return 1
   fi
-  host_bits=${$(([#2]$n))#'2#'}
-  [[ ${host_bits} < ${(l|${host_size}||1|)} ]] || return 1
-  host_bits=${(l|${host_size}||0|)host_bits}
 
-  haddr "${network_bits}${host_bits}"
+  ipv4::fmt_decimal "${network_bits}${host_bits}"
+}
+
+function ipv6::nth_addr() {
+  typeset -x +g BC_LINE_LENGTH=00
+  typeset network="${1%/*}"
+  typeset network_bits
+  typeset network_size="${1#*/}"
+  typeset host_bits
+  typeset host_size
+  typeset host_max
+  typeset n="$2"
+
+  [[ -n ${1[(r)/]} ]] || return 1
+  [ ${network_size} -eq "${network_size}" ] &> /dev/null || return 1
+  [[ "${network_size}" -gt 0 ]] || return 1
+  [[ "${network_size}" -le 126 ]] || return 1
+  [[ $n =~ "^-?[[:digit:]]*$" ]] || return 1
+
+  network_bits="${$(ipv6::fmt_binary ${network}):0:${network_size}}" || return 1
+  host_size=$(( 128 - ${network_size} ))
+  host_max=$(bc <<< "ibase=2;${(r|${host_size}||1|)}")
+  if [[ $n > 0 ]]; then
+    (( $(bc <<< "$n < ${host_max}") )) || return 1
+    host_bits=${(l|${host_size}||0|)$(bc <<< "obase=2;$n")}
+  elif [[ $n < 0 ]]; then
+    (( $(bc <<< "${n:1} < ${host_max}") )) || return 1
+    host_bits=${(l|${host_size}||0|)$(bc <<< "obase=2;${host_max} + $n")}
+  else
+    return 0
+  fi
+
+  ipv6::fmt_hex "${network_bits}${host_bits}"
 }
