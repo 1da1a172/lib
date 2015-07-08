@@ -366,7 +366,7 @@ function ipv6::addr_index() {
   start_delta=$(bc <<< "ibase=2;${addr} - ${network}")
   end_delta=$(bc <<< "ibase=2;${addr} - ${bcast}")
 
-  if [[ (( $(bc <<< "${start_delta} <= ${end_delta}") )) ]]; then
+  if (( $(bc <<< "${start_delta} <= ${end_delta:1}") )); then
     (( $(bc <<< "${start_delta} > 0") )) && echo "${start_delta}" || return 1
   else
     (( $(bc <<< "${end_delta} < 0") )) && echo "${end_delta}" || return 1
