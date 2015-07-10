@@ -372,3 +372,41 @@ function ipv6::addr_index() {
     (( $(bc <<< "${end_delta} < 0") )) && echo "${end_delta}" || return 1
   fi
 }
+
+# $1=v4 addr; $2=octet index (1-4); $3=increment size (defaults to 1)
+function ipv4::increment_octet() {
+  typeset addr="$1"
+  typeset inc="${3:-1}"
+
+  ipv4::valid_addr ${addr} || return 1
+  [ "$inc" -eq "$inc" ] &> /dev/null || return 1
+  [ $2 -ge 0 ] &> /dev/null || return 1
+  [[ $2 -le 4 ]] || return 1
+
+  (( addr[(ws|.|)$2]+=${inc} ))
+  [[ ${addr[(ws|.|)$2]} -le 255 ]] || return 1
+  [[ ${addr[(ws|.|)$2]} -ge 0 ]] || return 1
+
+  echo "${addr}"
+}
+
+# $1=v4 addr; $2=octet index (1-4); $3=increment size (defaults to 1)
+function ipv6::increment_hextet() {
+  typeset -x +g BC_LINE_LENGTH='00'
+  typeset addr="$1"
+  typeset inc="${$(( [#16] ${3:-1} ))#'16#'}"
+  typeset hextet
+
+  addr="$(ipv6::fmt_long ${addr})" || return 1
+  [[ "$inc" =~ "^-?[[:digit:]]+$" ]] || return 1
+  [ $2 -ge 0 ] &> /dev/null || return 1
+  [[ $2 -le 8 ]] || return 1
+
+  hextet=${addr[(ws|:|)$2]}
+  hextet=$(bc <<< "obase=16;ibase=16;${(U)hextet} + ${inc}")
+  (( $(bc <<< "ibase=16;${hextet} <= FFFF") )) || return 1
+  (( $(bc <<< "ibase=16;${hextet} >= 0") )) || return 1
+  addr[(ws|:|)$2]="${(L)hextet}"
+
+  ipv6::fmt_short "${addr}"
+}
