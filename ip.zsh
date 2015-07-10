@@ -390,7 +390,7 @@ function ipv4::increment_octet() {
   echo "${addr}"
 }
 
-# $1=v4 addr; $2=octet index (1-4); $3=increment size (defaults to 1)
+# $1=v6 addr; $2=octet index (1-8); $3=increment size (defaults to 1)
 function ipv6::increment_hextet() {
   typeset -x +g BC_LINE_LENGTH='00'
   typeset addr="$1"
