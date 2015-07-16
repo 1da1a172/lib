@@ -10,15 +10,8 @@ function ipv4::valid_addr() {
   typeset addr="$1"
   typeset octet
 
-  [[ "${addr[1]}" != '.' ]] || return 1
-  [[ "${addr[-1]}" != '.' ]] || return 1
-  [[ ${(ws|.|)#addr} == 4 ]] || return 1
-  [[ -z "${addr[(r)..]}" ]] || return 1
-
-  for octet in ${(ws|.|)addr}; do
-    [ ${octet} -le 255 ] &> /dev/null || return 1
-    [[ ${octet} -ge 0 ]] || return 1
-  done
+  [[ "${addr}" =~ '^([0-9]{1,3}\.){3}[0-9]{1,3}$' ]] || return 1
+  for octet (${(ws|.|)addr}) [[ ${octet} -le 255 ]] || return 1
 }
 
 function ipv6::valid_addr() {
