@@ -257,6 +257,7 @@ function ip::nth_addr() {
   ipv4::nth_addr "$@" || ipv6::nth_addr "$@" || return 1
 }
 
+#TODO BUG: $2 cannot be a negative number more than 1/2 the subnet size
 function ipv4::nth_addr() {
   typeset network="${1%/*}"
   typeset network_bits
@@ -317,7 +318,7 @@ function ipv6::nth_addr() {
 }
 
 function ip::addr_index() {
-  ipv4::addr_index "$@" || ipv6:addr_index "$@" || return 1
+  ipv4::addr_index "$@" || ipv6::addr_index "$@" || return 1
 }
 
 function ipv4::addr_index() {
@@ -344,6 +345,8 @@ function ipv4::addr_index() {
 }
 
 function ipv6::addr_index() {
+  #TODO - uncomment next line and test
+  #typeset -rx +g BC_LINE_LENGTH='00'
   typeset addr
   typeset network
   typeset bcast
