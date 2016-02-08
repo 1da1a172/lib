@@ -1,5 +1,3 @@
-#!/usr/bin/zsh
-
 function reload-wifi() {
   # unload
   sudo systemctl stop connman.service

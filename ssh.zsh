@@ -1,5 +1,3 @@
-#!/usr/bin/zsh
-
 function ssh () {
   typeset arg=1 
   typeset logtmp

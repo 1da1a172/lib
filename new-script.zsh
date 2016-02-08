@@ -1,5 +1,3 @@
-#!/usr/bin/zsh
-
 function new-script() {
   if [[ -z $1 ]]; then
     echo 'Enter a file name.' >&2

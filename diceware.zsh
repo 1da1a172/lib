@@ -1,5 +1,3 @@
-#!/usr/bin/zsh
-
 function diceware() {
   typeset -r WORDFILE="${HOME}/lib/diceware.wordlist.asc"
 

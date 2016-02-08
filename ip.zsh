@@ -1,5 +1,3 @@
-#!/usr/bin/zsh
-#
 # A library for scripting with network stuff
 
 function ip::valid_addr() {

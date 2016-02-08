@@ -1,5 +1,3 @@
-#!/usr/bin/zsh
-
 function sprng() {
   typeset -r URL='http://sprunge.us'
 
