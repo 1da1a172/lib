@@ -26,7 +26,7 @@ function ssh () {
 
     =ssh ${args} | tee >(col -b > "${logtmp}")
 
-    [[ -s "${logtmp}" ]] && gpg -o "${logfile}" -r "${USER}" -esa "${logtmp}"
+    [[ -s "${logtmp}" ]] && gpg -o "${logfile}" -r "${USER}" -ea "${logtmp}"
     rm "${logtmp}"
   else
     =ssh ${args}
