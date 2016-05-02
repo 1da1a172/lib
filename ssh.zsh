@@ -3,9 +3,7 @@ function ssh () {
   typeset logtmp
   typeset logfile
   typeset -r logdir="${HOME}/.ssh/logs" 
-  typeset -a args
-  args=("$@") 
-  readonly -a args
+  typeset -ra args=("$@")
 
   while [[ -z "${logfile}" ]] && [[ "${arg}" -le "${#args}" ]]; do
     case ${args[arg]} in
@@ -22,7 +20,7 @@ function ssh () {
   done
 
   if [[ -n "${logfile}" ]]; then
-    typeset -r logtmp="/tmp/${logfile:t:r}" 
+    typeset -r logtmp="/tmp/${logfile:t:r}"
 
     =ssh ${args} | tee >(col -b > "${logtmp}")
 
