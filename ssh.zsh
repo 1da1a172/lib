@@ -14,7 +14,8 @@ function ssh () {
         (( arg+=2 ))
         ;;
       (*)
-        typeset -r logfile="${logdir}/$(date +%Y%b%d-%T) ${args[arg]}.log.asc"
+        typeset -r hostname="${args[arg]}"
+        typeset -r logfile="${logdir}/$(date +%Y%b%d-%T)_${hostname}.log.asc"
         ;;
     esac
   done
@@ -22,7 +23,9 @@ function ssh () {
   if [[ -n "${logfile}" ]]; then
     typeset -r logtmp="/tmp/${logfile:t:r}"
 
+    [[ "${TERM}" == tmux* ]] && tmux set set-titles-string "#h|#I:#W|${hostname}"
     =ssh ${args} | tee >(col -b > "${logtmp}")
+    [[ "${TERM}" == tmux* ]] && tmux set set-titles-string "#h|#I:#W"
 
     [[ -s "${logtmp}" ]] && gpg -o "${logfile}" -r "${USER}" -ea "${logtmp}"
     rm "${logtmp}"
