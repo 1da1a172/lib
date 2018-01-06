@@ -27,7 +27,7 @@ function ssh () {
     =ssh ${args} | tee >(col -b > "${logtmp}")
     [[ "${TERM}" == tmux* ]] && tmux set set-titles-string "#h|#I:#W"
 
-    [[ -s "${logtmp}" ]] && gpg -o "${logfile}" -r "${USER}" -ea "${logtmp}"
+    [[ -s "${logtmp}" ]] && gpg -o "${logfile}" -ea "${logtmp}"
     rm "${logtmp}"
   else
     =ssh ${args}
