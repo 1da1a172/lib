@@ -25,7 +25,7 @@ function ssh () {
     typeset -r logtmp="/tmp/${logfile:t:r}"
 
     [[ "${TERM}" == tmux* ]] && tmux set set-titles-string "#h|#I:#W|${hostname}"
-    $SSH ${args} | tee >(col -b > "${logtmp}")
+    $SSH ${args} | tee >(iconv -t UTF-8 -c | col -b > "${logtmp}")
     [[ "${TERM}" == tmux* ]] && tmux set set-titles-string "#h|#I:#W"
 
     [[ -s "${logtmp}" ]] && gpg -o "${logfile}" -ea "${logtmp}"
