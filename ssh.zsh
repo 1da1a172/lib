@@ -1,4 +1,5 @@
 function ssh () {
+  typeset -r SSH='/usr/bin/ssh'
   typeset arg=1 
   typeset logtmp
   typeset logfile
@@ -24,12 +25,12 @@ function ssh () {
     typeset -r logtmp="/tmp/${logfile:t:r}"
 
     [[ "${TERM}" == tmux* ]] && tmux set set-titles-string "#h|#I:#W|${hostname}"
-    =ssh ${args} | tee >(col -b > "${logtmp}")
+    $SSH ${args} | tee >(col -b > "${logtmp}")
     [[ "${TERM}" == tmux* ]] && tmux set set-titles-string "#h|#I:#W"
 
     [[ -s "${logtmp}" ]] && gpg -o "${logfile}" -ea "${logtmp}"
     rm "${logtmp}"
   else
-    =ssh ${args}
+    $SSH ${args}
   fi
 }
