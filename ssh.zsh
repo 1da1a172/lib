@@ -16,7 +16,7 @@ function ssh () {
         ;;
       (*)
         typeset -r hostname="${args[arg]}"
-        typeset -r logfile="${logdir}/$(date +%Y%b%d-%T)_${hostname}.log.asc"
+        typeset -r logfile="${logdir}/$(date -Iseconds)_${hostname}.log.asc"
         ;;
     esac
   done
