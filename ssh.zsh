@@ -1,9 +1,9 @@
 function ssh () {
   typeset -r SSH='/usr/bin/ssh'
-  typeset arg=1 
+  typeset arg=1
   typeset logtmp
   typeset logfile
-  typeset -r logdir="${HOME}/.ssh/logs" 
+  typeset -r logdir="${HOME}/.ssh/logs"
   typeset -ra args=("$@")
 
   while [[ -z "${logfile}" ]] && [[ "${arg}" -le "${#args}" ]]; do
