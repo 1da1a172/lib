@@ -1,5 +1,5 @@
 function diceware() {
-  typeset -r WORDFILE="${HOME}/lib/diceware.wordlist.asc"
+  typeset -r WORDFILE="${HOME}/lib/eff_large_wordlist.txt.asc"
 
   if ! gpg --verify "${WORDFILE}" 2>/dev/null; then
     echo "${WORDFILE} did not pass the integrity check!"
