@@ -6,7 +6,7 @@ function nz() {
     echo 'File exists.' >&2
     return 1
   else
-    echo '#!/usr/bin/zsh'$'\n' > $1
+    echo $'#!/usr/bin/zsh\n' > $1
     chmod +x $1
     vim $1
   fi
@@ -27,6 +27,7 @@ function np() {
     contents+=$'from typing import List\n'
     contents+=$'\n'
     contents+=$'def main(argv: List[str]) -> int:\n'
+    contents+=$'    del argv\n'
     contents+=$'    return 0\n'
     contents+=$'\n\n'
     contents+=$'if __name__ == \'__main__\':\n'
