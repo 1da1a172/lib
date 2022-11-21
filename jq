@@ -4,10 +4,9 @@ def strip_defaults:
       to_entries
       | del(.[] | select(.value._flags?.default == true))
       | from_entries
-    ) else
-      .
-    end
-  );
+    ) else . end
+  )
+;
 
 def remove_not_present:
   walk(
@@ -15,10 +14,7 @@ def remove_not_present:
       if ._present == false then
         ._action = "delete"
         | del(._present)
-      else
-        .
-      end
-    ) else
-      .
-    end
-  );
+      else . end
+    ) else . end
+  )
+;
