@@ -8,6 +8,16 @@ def strip_defaults:
   )
 ;
 
+def strip_inherited:
+  walk(
+    if type == "object" then (
+      to_entries
+      | del(.[] | select(.value._flags?.inherited == true))
+      | from_entries
+    ) else . end
+  )
+;
+
 def remove_not_present:
   walk(
     if type == "object" then (
@@ -24,10 +34,14 @@ def sort_profiles:
     if (type == "array") and (length > 1) then (
       if  .[0] | has("profile-name") then (
         sort_by(."profile-name")
+      ) elif .[0] | has("name") then (
+        sort_by(.name)
       ) elif .[0] | has("accname") then (
         sort_by(.accname)
       ) elif .[0] | has("rad_server_name") then (
         sort_by(.rad_server_name)
+      ) elif .[0] | has("sg_name") then (
+        sort_by(.sg_name)
       ) else . end
     ) elif type == "object" then (
       if has("netdst__entry") then (
