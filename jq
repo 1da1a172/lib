@@ -56,6 +56,14 @@ def strip_inherited:
     )
 ;
 
+def strip_flags:
+    walk(
+        if type == "object" then (
+            del(._flags)
+        ) else . end
+    )
+;
+
 def remove_not_present:
     walk(
         if type == "object" then (
