@@ -147,15 +147,43 @@ def sort_profiles:
                 )
             ) else . end
         ) elif type == "object" then (
-            # keys that are used in an order senitive array
+            # keys that are used elsewhere in an order senitive array
             ## objects that may have more than thing that needs sorted (e.g., top object)
-            if has("vlan_name_id") then (
+            if has("cp_bwc") then (
                 # top
-                .vlan_name_id |= sort_by(.name)
+                .cp_bwc |= sort_by(.name)
+            ) else . end
+            | if has("crypto_local_pki_rcp") then (
+                # top
+                .crypto_local_pki_rcp |= sort_by(.name)
+            ) else . end
+            | if has("netsvc") then (
+                # top
+                .netsvc |= sort_by(.name)
+            ) else . end
+            | if has("radius_attr") then (
+                # top
+                .radius_attr |= sort_by(.name)
+            ) else . end
+            | if has("snmp_ser_trap_enable") then (
+                # top
+                .snmp_ser_trap_enable |= sort_by(.name)
             ) else . end
             | if has("snmp_ser_user") then (
                 # top
                 .snmp_ser_user |= sort_by(.name)
+            ) else . end
+            | if has("time_range_per") then (
+                # top
+                .time_range_per |= sort_by(.name)
+            ) else . end
+            | if has("vlan_name") then (
+                # top
+                .vlan_name |= sort_by(.name)
+            ) else . end
+            | if has("vlan_name_id") then (
+                # top
+                .vlan_name_id |= sort_by(.name)
             ) else . end
             ## mutually exclusive arrays
             #| if has("foo") then (
@@ -168,3 +196,7 @@ def sort_profiles:
         ) else . end
     )
 ;
+# TODO:
+# - .time_range_per[].time_range_per__day[].
+# - .time_range_per[].time_range_per__week[].
+# Consider looping for stuff sorted by .name
