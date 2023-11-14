@@ -22,16 +22,18 @@ function np() {
   else
     typeset contents=''
     contents+=$'#!/usr/bin/env python3\n'
+    contents+=$'""" !!! SCRAP !!! """\n'
     contents+=$'\n'
     contents+=$'import sys\n'
     contents+=$'from typing import List\n'
     contents+=$'\n'
-    contents+=$'def main(argv: List[str]) -> int:\n'
+    contents+=$'\n'
+    contents+=$'def _main(argv: List[str]) -> int:\n'
     contents+=$'    del argv\n'
     contents+=$'    return 0\n'
     contents+=$'\n\n'
-    contents+=$'if __name__ == \'__main__\':\n'
-    contents+=$'    sys.exit(main(sys.argv))'
+    contents+=$'if __name__ == "__main__":\n'
+    contents+=$'    sys.exit(_main(sys.argv))'
 
     echo $contents > $1
     chmod +x $1
