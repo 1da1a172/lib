@@ -46,7 +46,7 @@ def strip_defaults:
             to_entries
             | del(.[] | select(.value._flags?.default == true))
             | from_entries
-        ) else . end
+        ) end
     )
 ;
 
@@ -56,7 +56,7 @@ def strip_inherited:
             to_entries
             | del(.[] | select(.value._flags?.inherited == true))
             | from_entries
-        ) else . end
+        ) end
     )
 ;
 
@@ -64,7 +64,7 @@ def strip_flags:
     walk(
         if type == "object" then (
             del(._flags)
-        ) else . end
+        ) end
     )
 ;
 
@@ -74,8 +74,8 @@ def remove_not_present:
             if ._present == false then (
                 ._action = "delete"
                 | del(._present)
-            ) else . end
-        ) else . end
+            ) end
+        ) end
     )
 ;
 
@@ -162,48 +162,48 @@ def sort_profiles:
                         (.netmask | ipv4_sorter)
                     ) elif ._objname == "netdst6__network" then (
                         .sip6net | ipv6_sorter
-                    ) else . end
+                    ) end
                 )
-            ) else . end
+            ) end
         ) elif type == "object" then (
             # keys that are used elsewhere in an order senitive array
             ## objects that may have more than thing that needs sorted (e.g., top object)
             if has("cp_bwc") then (
                 # top
                 .cp_bwc |= sort_by(.name)
-            ) else . end
+            ) end
             | if has("crypto_local_pki_rcp") then (
                 # top
                 .crypto_local_pki_rcp |= sort_by(.name)
-            ) else . end
+            ) end
             | if has("netsvc") then (
                 # top
                 .netsvc |= sort_by(.name)
-            ) else . end
+            ) end
             | if has("radius_attr") then (
                 # top
                 .radius_attr |= sort_by(.name)
-            ) else . end
+            ) end
             | if has("snmp_ser_trap_enable") then (
                 # top
                 .snmp_ser_trap_enable |= sort_by(.name)
-            ) else . end
+            ) end
             | if has("snmp_ser_user") then (
                 # top
                 .snmp_ser_user |= sort_by(.name)
-            ) else . end
+            ) end
             | if has("time_range_per") then (
                 # top
                 .time_range_per |= sort_by(.name)
-            ) else . end
+            ) end
             | if has("vlan_name") then (
                 # top
                 .vlan_name |= sort_by(.name)
-            ) else . end
+            ) end
             | if has("vlan_name_id") then (
                 # top
                 .vlan_name_id |= sort_by(.name)
-            ) else . end
+            ) end
             ## mutually exclusive arrays
             #| if has("foo") then (
             #    # .bat[]
@@ -211,8 +211,8 @@ def sort_profiles:
             #) elif has("bar") then (
             #    # .baz[]
             #    .bar |= sort_by(.name)
-            #) else . end
-        ) else . end
+            #) end
+        ) end
     )
 ;
 # TODO:
