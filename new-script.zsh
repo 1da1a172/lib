@@ -37,7 +37,11 @@ function np() {
     return 1
   fi
   typeset contents=''
-  contents+=$'#!/usr/bin/env python3\n'
+  if [[ -v VIRTUAL_ENV ]]; then
+    contents+="#!$(which python3)\n"
+  else
+    contents+=$'#!/usr/bin/env python3\n'
+  fi
   contents+=$'""" !!! SCRAP !!! """\n'
   contents+=$'\n'
   contents+=$'import sys\n'
