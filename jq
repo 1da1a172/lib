@@ -83,6 +83,13 @@ def prof(p):
     select(."profile-name" == p)
 ;
 
+def del_prof:
+    {
+        "profile-name",
+        "_action": "delete"
+    }
+;
+
 # unsafe keys:
 # - name: .server_group_prof[].auth_server
 # - action: .acl_sess[].acl_sess__v{4,6}policy
