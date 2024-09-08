@@ -1,3 +1,7 @@
+def s_to_ms:
+  . * 100000 | round | . / 100
+;
+
 def ipv4_sorter:
     (. / ".")[] | tonumber
 ;
