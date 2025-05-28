@@ -83,6 +83,14 @@ def prof(p):
     select(."profile-name" == p)
 ;
 
+def has_prof(p):
+    if . == null then (
+        false
+    ) else (
+      map(."profile-name" == p) | any
+    ) end
+;
+
 def del_prof:
     {
         "profile-name",
