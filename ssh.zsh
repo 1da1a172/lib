@@ -15,7 +15,7 @@ function ssh () {
         (( arg+=2 ))
         ;;
       (*)
-        typeset -r hostname="${args[arg]}"
+        typeset -r hostname="${args[arg]//\//_}"
         typeset -r logfile="${logdir}/$(date -Iseconds)_${hostname}.log.asc"
         ;;
     esac
@@ -25,10 +25,14 @@ function ssh () {
     typeset -r logtmp="/tmp/${logfile:t:r}"
 
     [[ "${TERM}" == tmux* ]] && tmux set set-titles-string "#h|#I:#W|${hostname}"
-    TERM=screen-256color $SSH ${args} | tee >(iconv -t UTF-8 -c | col -b > "${logtmp}")
+    TERM=screen-256color asciinema rec \
+      --command="${SSH} ${args}" \
+      --quiet \
+      "${logtmp}"
     [[ "${TERM}" == tmux* ]] && tmux set set-titles-string "#h|#I:#W"
 
-    [[ -s "${logtmp}" ]] && gpg -o "${logfile}" -ea "${logtmp}"
+    [[ -s "${logtmp}" ]] \
+      && asciinema convert -f txt "${logtmp}" >(gpg -o "${logfile}" -ea)
     rm "${logtmp}"
   else
     $SSH ${args}
