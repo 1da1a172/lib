@@ -128,6 +128,9 @@ def sort_profiles:
             ) elif all(has("ipv6")) then (
                 # .cluster_prof[].cluster_controller_v6
                 sort_by(.ipv6 | ipv6_sorter)
+            ) elif all(has("local-switch-ipv6")) then (
+                # .ipsec_localipv6
+                sort_by(."local-switch-ipv6" | ipv6_sorter)
             ) elif all(has("cert_type") and has("name")) then (
                 # .crypto_local_pki_cert
                 sort_by(.cert_type, .name)
